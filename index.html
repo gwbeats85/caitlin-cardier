@@ -1,0 +1,2164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Caitlin Cardier — Trading Education</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800;900&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+
+<style>
+  :root {
+    --green: #5cfd80;
+    --green-dim: #02c953;
+    --surface: #0e0e0e;
+    --surface-low: #131313;
+    --surface-mid: #1a1919;
+    --surface-high: #201f1f;
+    --surface-bright: #2c2c2c;
+    --outline: #494847;
+    --text: #ffffff;
+    --text-muted: #adaaaa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: auto; }
+
+  body {
+    background: var(--surface);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ── Noise Texture ── */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9998;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    opacity: 0.025;
+    mix-blend-mode: overlay;
+  }
+
+  /* ── Custom Cursor ── */
+  #cursor-dot {
+    position: fixed;
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s ease, width 0.2s ease, height 0.2s ease, opacity 0.2s ease;
+    mix-blend-mode: screen;
+  }
+  #cursor-ring {
+    position: fixed;
+    width: 36px;
+    height: 36px;
+    border: 1px solid rgba(92, 253, 128, 0.5);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease, width 0.3s ease, height 0.3s ease, opacity 0.3s ease, border-color 0.3s ease;
+  }
+  body:has(a:hover) #cursor-ring,
+  body:has(button:hover) #cursor-ring {
+    width: 56px;
+    height: 56px;
+    border-color: rgba(92, 253, 128, 0.8);
+  }
+
+  /* ── Ticker Tape ── */
+  #ticker {
+    height: 32px;
+    background: var(--surface-low);
+    border-bottom: 1px solid rgba(92, 253, 128, 0.08);
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+  }
+  .ticker-track {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    white-space: nowrap;
+    animation: ticker-scroll 40s linear infinite;
+  }
+  .ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+  }
+  .ticker-item .up { color: var(--green); }
+  .ticker-item .down { color: #ff7351; }
+  .ticker-sep {
+    color: rgba(255,255,255,0.1);
+    padding: 0 8px;
+  }
+  @keyframes ticker-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* ── Navigation ── */
+  nav {
+    position: fixed;
+    top: 32px;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    padding: 0 40px;
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(14, 14, 14, 0.5);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    transition: background 0.4s ease;
+  }
+
+  .nav-logo {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    color: var(--text);
+  }
+  .nav-logo span {
+    color: var(--green);
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 36px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    color: var(--text-muted);
+    text-decoration: none;
+    position: relative;
+    transition: color 0.3s ease;
+  }
+  .nav-links a::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background: var(--green);
+    transition: width 0.3s ease;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a:hover::after { width: 100%; }
+  .nav-links a.active { color: var(--green); }
+  .nav-links a.active::after { width: 100%; }
+
+  .nav-cta {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  /* Social icons in nav */
+  .nav-socials {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .nav-social-link {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    cursor: none;
+  }
+  .nav-social-link:hover {
+    background: rgba(92,253,128,0.1);
+    border-color: rgba(92,253,128,0.25);
+    transform: translateY(-1px);
+  }
+  .nav-social-link svg {
+    width: 15px;
+    height: 15px;
+    fill: var(--text-muted);
+    transition: fill 0.3s ease;
+  }
+  .nav-social-link:hover svg { fill: var(--green); }
+
+  .btn-primary {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    color: #003711;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-dim) 100%);
+    border: none;
+    padding: 10px 24px;
+    border-radius: 8px;
+    cursor: none;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+  }
+  .btn-primary:hover {
+    box-shadow: 0 0 24px rgba(92, 253, 128, 0.35);
+    transform: translateY(-1px);
+  }
+
+  /* ── Hero ── */
+  #hero {
+    position: relative;
+    height: 100vh;
+    min-height: 700px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding-top: 104px; /* ticker + nav */
+  }
+
+  #hero-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url('./hero.png');
+    background-size: cover;
+    background-position: center 40%;
+    will-change: transform;
+  }
+
+  /* Dark overlays for text legibility */
+  #hero-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to right, rgba(14,14,14,0.85) 0%, rgba(14,14,14,0.4) 60%, rgba(14,14,14,0.2) 100%),
+      linear-gradient(to top, rgba(14,14,14,0.95) 0%, transparent 50%);
+  }
+
+  #hero-content {
+    position: relative;
+    z-index: 10;
+    max-width: 1200px;
+    width: 100%;
+    padding: 0 40px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+
+  .hero-left { max-width: 600px; }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    background: rgba(92, 253, 128, 0.08);
+    border: 1px solid rgba(92, 253, 128, 0.2);
+    border-radius: 100px;
+    margin-bottom: 28px;
+  }
+  .hero-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse-dot 2s ease infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+  .hero-badge span {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--green);
+  }
+
+  .hero-title {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 900;
+    font-size: clamp(3rem, 5.5vw, 5.5rem);
+    line-height: 1.0;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  .hero-title .line {
+    display: block;
+    overflow: hidden;
+  }
+  .hero-title .line span {
+    display: block;
+    transform: translateY(110%);
+  }
+  .hero-title .accent { color: var(--green); font-style: italic; }
+
+  .hero-sub {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--text-muted);
+    max-width: 460px;
+    margin-bottom: 40px;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  .btn-hero-primary {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: #003711;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-dim) 100%);
+    border: none;
+    padding: 16px 36px;
+    border-radius: 10px;
+    cursor: none;
+    letter-spacing: -0.01em;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+  }
+  .btn-hero-primary:hover {
+    box-shadow: 0 12px 36px rgba(92, 253, 128, 0.3);
+    transform: translateY(-2px);
+  }
+  .btn-hero-secondary {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 16px 36px;
+    border-radius: 10px;
+    cursor: none;
+    letter-spacing: -0.01em;
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  .btn-hero-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+  }
+
+  /* ── Hero ROI Widget ── */
+  .hero-right {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-end;
+    opacity: 0;
+  }
+  .roi-widget {
+    background: rgba(26, 25, 25, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(92, 253, 128, 0.15);
+    border-radius: 16px;
+    padding: 24px;
+    width: 280px;
+  }
+  .roi-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .roi-number {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 900;
+    font-size: 42px;
+    letter-spacing: -0.04em;
+    color: var(--green);
+    line-height: 1;
+  }
+  .roi-chart {
+    margin-top: 16px;
+    height: 48px;
+  }
+  .roi-chart svg { overflow: visible; }
+
+  .trade-widget {
+    background: rgba(26, 25, 25, 0.8);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 16px;
+    padding: 20px 24px;
+    width: 280px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .trade-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .trade-value {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: -0.02em;
+  }
+  .trade-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(92, 253, 128, 0.12);
+    color: var(--green);
+  }
+
+  /* ── Stats Bar ── */
+  #stats {
+    background: var(--surface-low);
+    border-top: 1px solid rgba(255,255,255,0.04);
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    padding: 64px 40px;
+  }
+  .stats-grid {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .stat-item {
+    background: var(--surface-low);
+    padding: 48px 40px;
+    text-align: center;
+  }
+  .stat-number {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.2rem, 3.5vw, 3.5rem);
+    letter-spacing: -0.04em;
+    color: var(--green);
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+  .stat-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    color: var(--text-muted);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── Section Titles ── */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 12px;
+  }
+  .section-title {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: clamp(2rem, 3vw, 3rem);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    margin-bottom: 16px;
+  }
+  .section-sub {
+    font-size: 16px;
+    color: var(--text-muted);
+    line-height: 1.7;
+    max-width: 480px;
+  }
+
+  /* ── Bento Grid ── */
+  #services {
+    padding: 120px 40px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .services-header { margin-bottom: 64px; }
+
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto auto;
+    gap: 16px;
+  }
+  .bento-card {
+    background: var(--surface-mid);
+    border-radius: 20px;
+    padding: 40px;
+    position: relative;
+    overflow: hidden;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: background 0.4s ease, box-shadow 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    border: 1px solid rgba(255,255,255,0.04);
+  }
+  .bento-card:hover {
+    background: var(--surface-high);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(92,253,128,0.08);
+    transform: translateY(-4px);
+  }
+  .bento-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(92,253,128,0.06) 0%, transparent 60%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+  .bento-card:hover::before { opacity: 1; }
+
+  .bento-wide { grid-column: span 2; }
+
+  .card-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: rgba(92, 253, 128, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .card-icon svg { width: 22px; height: 22px; stroke: var(--green); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  .card-title {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    margin-bottom: 12px;
+  }
+  .card-desc {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--text-muted);
+    max-width: 420px;
+  }
+  .card-meta {
+    margin-top: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .card-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: rgba(92, 253, 128, 0.1);
+    color: var(--green);
+  }
+  .card-muted {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .card-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 28px;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--green);
+    text-decoration: none;
+    cursor: none;
+    transition: gap 0.3s ease;
+  }
+  .card-link:hover { gap: 14px; }
+  .card-link svg { width: 16px; height: 16px; stroke: var(--green); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* Analytics mini chart bars */
+  .mini-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 5px;
+    height: 80px;
+    margin-top: 24px;
+  }
+  .mini-bar {
+    flex: 1;
+    border-radius: 4px 4px 0 0;
+    background: rgba(92, 253, 128, 0.2);
+    transform-origin: bottom;
+    transition: background 0.3s ease;
+  }
+  .mini-bar:last-child {
+    background: var(--green);
+    box-shadow: 0 -6px 20px rgba(92, 253, 128, 0.3);
+  }
+  .mini-bar:hover { background: rgba(92, 253, 128, 0.6); }
+
+  /* ── Testimonials ── */
+  #testimonials {
+    padding: 120px 40px;
+    background: var(--surface-low);
+  }
+  .testimonials-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .testimonials-header { margin-bottom: 64px; }
+  .testimonials-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .testi-card {
+    background: var(--surface-mid);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 20px;
+    padding: 36px;
+  }
+  .testi-stars {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+  }
+  .testi-stars svg {
+    width: 14px; height: 14px;
+    fill: var(--green);
+    stroke: none;
+  }
+  .testi-quote {
+    font-size: 15px;
+    line-height: 1.75;
+    color: #d0cfcf;
+    margin-bottom: 28px;
+    font-style: italic;
+  }
+  .testi-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .testi-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(92,253,128,0.3) 0%, rgba(2,201,83,0.15) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--green);
+    border: 1px solid rgba(92,253,128,0.2);
+    flex-shrink: 0;
+  }
+  .testi-name {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .testi-handle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .testi-return {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  /* ── Pricing ── */
+  #pricing {
+    padding: 120px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .pricing-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(92,253,128,0.04) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .pricing-card {
+    max-width: 680px;
+    margin: 0 auto;
+    background: var(--surface-mid);
+    border: 1px solid rgba(92,253,128,0.12);
+    border-radius: 28px;
+    padding: 64px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .pricing-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent 0%, rgba(92,253,128,0.4) 50%, transparent 100%);
+  }
+  .pricing-badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 24px;
+  }
+  .pricing-title {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
+    letter-spacing: -0.04em;
+    margin-bottom: 12px;
+    line-height: 1.05;
+  }
+  .pricing-price {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 6px;
+    margin: 32px 0;
+  }
+  .price-num {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 900;
+    font-size: 72px;
+    letter-spacing: -0.05em;
+    line-height: 1;
+  }
+  .price-period {
+    font-size: 16px;
+    color: var(--text-muted);
+  }
+  .pricing-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    text-align: left;
+    max-width: 480px;
+    margin: 0 auto 48px;
+  }
+  .pricing-feature {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+  }
+  .pricing-feature svg {
+    width: 16px; height: 16px;
+    stroke: var(--green);
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+  .btn-pricing {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 17px;
+    color: #003711;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-dim) 100%);
+    border: none;
+    padding: 20px 60px;
+    border-radius: 12px;
+    cursor: none;
+    letter-spacing: -0.01em;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+    width: 100%;
+    max-width: 360px;
+  }
+  .btn-pricing:hover {
+    box-shadow: 0 16px 48px rgba(92, 253, 128, 0.35);
+    transform: translateY(-2px);
+  }
+  .pricing-note {
+    margin-top: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── Global Section ── */
+  #global {
+    padding: 120px 40px;
+    background: var(--surface-low);
+  }
+  .global-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .global-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .global-mini-card {
+    background: var(--surface-high);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 14px;
+    padding: 24px;
+  }
+  .global-mini-card svg { width: 24px; height: 24px; stroke: var(--green); fill: none; stroke-width: 1.5; margin-bottom: 14px; }
+  .global-mini-card h4 {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .global-mini-card p { font-size: 12px; color: var(--text-muted); line-height: 1.6; }
+
+  .global-quote-card {
+    grid-column: span 2;
+    background: var(--surface-high);
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 14px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .global-quote-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(92,253,128,0.25) 0%, rgba(2,201,83,0.1) 100%);
+    border: 2px solid rgba(92,253,128,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 900;
+    font-size: 18px;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+  .global-quote-text { font-size: 14px; line-height: 1.65; font-style: italic; color: #d0cfcf; }
+  .global-quote-attr { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--green); margin-top: 6px; }
+
+  .global-right {}
+  .global-list { list-style: none; margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
+  .global-list-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .global-list-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    background: var(--surface-high);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.3s ease;
+  }
+  .global-list-icon svg { width: 16px; height: 16px; stroke: var(--text-muted); fill: none; stroke-width: 1.5; transition: stroke 0.3s ease; }
+  .global-list-item:hover .global-list-icon { background: var(--green); }
+  .global-list-item:hover .global-list-icon svg { stroke: #003711; }
+  .global-list-text { font-size: 15px; font-weight: 500; }
+
+  .global-cta-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 40px;
+    font-family: 'Manrope', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    padding-bottom: 4px;
+    cursor: none;
+    transition: color 0.3s ease, border-color 0.3s ease, gap 0.3s ease;
+  }
+  .global-cta-link:hover { color: var(--green); border-color: var(--green); gap: 14px; }
+
+  /* ── Footer ── */
+  footer {
+    background: var(--surface);
+    border-top: 1px solid rgba(255,255,255,0.04);
+    padding: 48px 40px;
+  }
+  .footer-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+  .footer-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  .footer-logo {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 900;
+    font-size: 16px;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+  }
+  .footer-logo span { color: var(--green); }
+  .footer-tagline {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+  .footer-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+  .footer-links a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s ease;
+    cursor: none;
+  }
+  .footer-links a:hover { color: var(--text); }
+  .footer-bottom {
+    border-top: 1px solid rgba(255,255,255,0.04);
+    padding-top: 24px;
+  }
+  .footer-legal {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    color: rgba(255,255,255,0.2);
+    line-height: 1.7;
+    max-width: 700px;
+  }
+
+  /* ── Scroll Reveal Defaults ── */
+  /* opacity handled by GSAP only — no CSS hiding */
+
+  /* ── Join Modal ── */
+  #modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    pointer-events: none;
+    opacity: 0;
+  }
+  #modal-overlay.active { pointer-events: all; }
+
+  #modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+  }
+
+  #modal-card {
+    position: relative;
+    z-index: 2;
+    background: #161515;
+    border: 1px solid rgba(92,253,128,0.15);
+    border-radius: 24px;
+    padding: 52px 48px;
+    width: 100%;
+    max-width: 480px;
+    transform: scale(0.92) translateY(20px);
+    opacity: 0;
+    overflow: hidden;
+  }
+  #modal-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(92,253,128,0.5), transparent);
+  }
+  /* subtle glow top */
+  #modal-card::after {
+    content: '';
+    position: absolute;
+    top: -60px; left: 50%;
+    transform: translateX(-50%);
+    width: 300px; height: 120px;
+    background: radial-gradient(ellipse, rgba(92,253,128,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  #modal-close {
+    position: absolute;
+    top: 20px; right: 20px;
+    width: 32px; height: 32px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex; align-items: center; justify-content: center;
+    cursor: none;
+    transition: background 0.2s ease;
+  }
+  #modal-close:hover { background: rgba(255,255,255,0.1); }
+  #modal-close svg { width: 14px; height: 14px; stroke: var(--text-muted); fill: none; stroke-width: 2; stroke-linecap: round; }
+
+  .modal-eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 12px;
+  }
+  .modal-title {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 900;
+    font-size: 28px;
+    letter-spacing: -0.03em;
+    line-height: 1.15;
+    margin-bottom: 8px;
+  }
+  .modal-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.65;
+    margin-bottom: 36px;
+  }
+
+  .modal-form { display: flex; flex-direction: column; gap: 14px; }
+
+  .modal-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .modal-field label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .modal-field input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 13px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+    cursor: none;
+    width: 100%;
+  }
+  .modal-field input::placeholder { color: rgba(255,255,255,0.2); }
+  .modal-field input:focus {
+    border-color: rgba(92,253,128,0.4);
+    background: rgba(92,253,128,0.03);
+    box-shadow: 0 0 0 3px rgba(92,253,128,0.06);
+  }
+
+  .btn-modal-submit {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    color: #003711;
+    background: linear-gradient(135deg, var(--green) 0%, var(--green-dim) 100%);
+    border: none;
+    padding: 16px;
+    border-radius: 12px;
+    cursor: none;
+    width: 100%;
+    margin-top: 6px;
+    letter-spacing: -0.01em;
+    transition: box-shadow 0.3s ease, transform 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-modal-submit:hover {
+    box-shadow: 0 10px 32px rgba(92,253,128,0.3);
+    transform: translateY(-1px);
+  }
+  .btn-modal-submit::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+    transform: translateX(-100%);
+    transition: transform 0.5s ease;
+  }
+  .btn-modal-submit:hover::after { transform: translateX(100%); }
+
+  .modal-privacy {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+    text-align: center;
+    margin-top: 14px;
+  }
+
+  /* Success state */
+  #modal-success {
+    display: none;
+    text-align: center;
+    padding: 20px 0;
+  }
+  #modal-success .success-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(92,253,128,0.1);
+    border: 1px solid rgba(92,253,128,0.3);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+  }
+  #modal-success .success-icon svg { width: 24px; height: 24px; stroke: var(--green); fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+  #modal-success h3 {
+    font-family: 'Manrope', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  #modal-success p { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
+
+  /* ── Footer Socials ── */
+  .footer-socials {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .footer-social-link {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: background 0.3s ease, border-color 0.3s ease, transform 0.2s ease;
+    cursor: none;
+  }
+  .footer-social-link:hover {
+    background: rgba(92,253,128,0.1);
+    border-color: rgba(92,253,128,0.2);
+    transform: translateY(-2px);
+  }
+  .footer-social-link svg {
+    width: 16px; height: 16px;
+    fill: var(--text-muted);
+    transition: fill 0.3s ease;
+  }
+  .footer-social-link:hover svg { fill: var(--green); }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    nav { padding: 0 20px; }
+    #hero-content { grid-template-columns: 1fr; gap: 40px; }
+    .hero-right { display: none; }
+    .bento-grid { grid-template-columns: 1fr; }
+    .bento-wide { grid-column: span 1; }
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .testimonials-grid { grid-template-columns: 1fr; }
+    .global-inner { grid-template-columns: 1fr; }
+    .pricing-card { padding: 40px 28px; }
+    .pricing-features { grid-template-columns: 1fr; }
+    .footer-top { flex-direction: column; gap: 24px; }
+    .footer-links { flex-wrap: wrap; gap: 20px; }
+    #services { padding: 80px 20px; }
+    #testimonials { padding: 80px 20px; }
+    #pricing { padding: 80px 20px; }
+    #global { padding: 80px 20px; }
+  }
+</style>
+</head>
+
+<body>
+<!-- Custom Cursor -->
+<div id="cursor-dot"></div>
+<div id="cursor-ring"></div>
+
+<!-- Ticker Tape -->
+<div id="ticker">
+  <div class="ticker-track">
+    <!-- Original set -->
+    <span class="ticker-item">SPY <span class="up">▲ 0.42%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">QQQ <span class="up">▲ 0.71%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">NVDA <span class="up">▲ 2.14%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">TSLA <span class="down">▼ 0.88%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">AAPL <span class="up">▲ 0.33%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">AMD <span class="up">▲ 1.62%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">MSFT <span class="up">▲ 0.55%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">META <span class="up">▲ 1.04%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">AMZN <span class="down">▼ 0.22%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">GOOGL <span class="up">▲ 0.38%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">BTC <span class="up">▲ 3.21%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">ETH <span class="up">▲ 2.87%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">DXY <span class="down">▼ 0.14%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">GOLD <span class="up">▲ 0.61%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">OIL <span class="down">▼ 1.03%</span></span>
+    <span class="ticker-sep">|</span>
+    <!-- Duplicate for seamless loop -->
+    <span class="ticker-item">SPY <span class="up">▲ 0.42%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">QQQ <span class="up">▲ 0.71%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">NVDA <span class="up">▲ 2.14%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">TSLA <span class="down">▼ 0.88%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">AAPL <span class="up">▲ 0.33%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">AMD <span class="up">▲ 1.62%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">MSFT <span class="up">▲ 0.55%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">META <span class="up">▲ 1.04%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">AMZN <span class="down">▼ 0.22%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">GOOGL <span class="up">▲ 0.38%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">BTC <span class="up">▲ 3.21%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">ETH <span class="up">▲ 2.87%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">DXY <span class="down">▼ 0.14%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">GOLD <span class="up">▲ 0.61%</span></span>
+    <span class="ticker-sep">|</span>
+    <span class="ticker-item">OIL <span class="down">▼ 1.03%</span></span>
+    <span class="ticker-sep">|</span>
+  </div>
+</div>
+
+<!-- Navigation -->
+<nav id="nav">
+  <div class="nav-logo">Caitlin<span>.</span>Cardier</div>
+  <ul class="nav-links">
+    <li><a href="#" class="active">Live Trading</a></li>
+    <li><a href="#">Automated Apps</a></li>
+    <li><a href="#">Copy-Paste</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+  </ul>
+  <div class="nav-cta">
+    <div class="nav-socials">
+      <!-- Instagram -->
+      <a href="https://www.instagram.com/caitlincardier" target="_blank" rel="noopener" class="nav-social-link" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+        </svg>
+      </a>
+      <!-- Facebook -->
+      <a href="https://www.facebook.com/caitlinjcardier" target="_blank" rel="noopener" class="nav-social-link" aria-label="Facebook">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+        </svg>
+      </a>
+    </div>
+    <button class="btn-primary" id="nav-join-btn" onclick="openModal()">Join Now</button>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <div id="hero-bg"></div>
+
+  <!-- Particle canvas overlay -->
+  <canvas id="particles" style="position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0.4;"></canvas>
+
+  <div id="hero-content">
+    <div class="hero-left">
+      <div class="hero-badge">
+        <div class="hero-badge-dot"></div>
+        <span>Live Markets Open</span>
+      </div>
+      <h1 class="hero-title">
+        <span class="line"><span>Master the</span></span>
+        <span class="line"><span>Markets with</span></span>
+        <span class="line"><span class="accent">Professional</span></span>
+        <span class="line"><span>Execution.</span></span>
+      </h1>
+      <p class="hero-sub">Institutional-grade education and automated tools designed for the modern trader. Real-time insights, zero-lag execution, proven alpha.</p>
+      <div class="hero-actions">
+        <button class="btn-hero-primary">Start Trading Now</button>
+        <button class="btn-hero-secondary">View All Apps</button>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <!-- ROI Widget -->
+      <div class="roi-widget" id="roi-widget">
+        <div class="roi-label">Current ROI Average</div>
+        <div class="roi-number">+24.8%</div>
+        <div class="roi-chart">
+          <svg viewBox="-5 -5 170 58" width="100%" height="100%" overflow="visible">
+            <defs>
+              <linearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#5cfd80" stop-opacity="0.3"/>
+                <stop offset="100%" stop-color="#5cfd80" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <path class="chart-fill" d="M 0 50 Q 30 15, 60 38 T 110 8 T 160 22 L 160 55 L 0 55 Z"
+                  fill="url(#lineGrad)" opacity="0"/>
+            <path class="chart-line" d="M 0 50 Q 30 15, 60 38 T 110 8 T 160 22"
+                  fill="none" stroke="#5cfd80" stroke-width="2.5" stroke-linecap="round"
+                  style="stroke-dasharray:1000;stroke-dashoffset:1000;"
+                  filter="drop-shadow(0 2px 8px rgba(92,253,128,0.6))"/>
+          </svg>
+        </div>
+      </div>
+      <!-- Trade Widget -->
+      <div class="trade-widget" id="trade-widget">
+        <div>
+          <div class="trade-label">Active Traders</div>
+          <div class="trade-value">2,847</div>
+        </div>
+        <div class="trade-badge">Live ●</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scroll indicator -->
+  <div style="position:absolute;bottom:40px;left:50%;transform:translateX(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;" id="scroll-indicator">
+    <span style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);">Scroll</span>
+    <div style="width:1px;height:40px;background:linear-gradient(to bottom,rgba(92,253,128,0.6),transparent);animation:scroll-line 2s ease-in-out infinite;">
+    </div>
+  </div>
+</section>
+
+<style>
+@keyframes scroll-line {
+  0% { transform: scaleY(0); transform-origin: top; }
+  50% { transform: scaleY(1); transform-origin: top; }
+  51% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+</style>
+
+<!-- Stats Bar -->
+<div id="stats">
+  <div class="stats-grid">
+    <div class="stat-item">
+      <div class="stat-number" data-target="2847" data-prefix="">0</div>
+      <div class="stat-label">Active Traders</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" data-target="94" data-suffix="%">0%</div>
+      <div class="stat-label">Signal Clarity Rate</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" data-target="24" data-suffix=".8%" data-prefix="+">+0%</div>
+      <div class="stat-label">Average ROI</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-number" data-target="5" data-suffix="+ Years">0</div>
+      <div class="stat-label">Market Experience</div>
+    </div>
+  </div>
+</div>
+
+<!-- Bento Services -->
+<section id="services">
+  <div class="services-header reveal">
+    <div class="section-label">Core Ecosystem</div>
+    <h2 class="section-title">Everything You Need<br>to Trade Like a Pro</h2>
+    <p class="section-sub">Proprietary tools refined through years of institutional execution — now in your hands.</p>
+  </div>
+
+  <div class="bento-grid">
+    <!-- Card 1: Wide -->
+    <div class="bento-card bento-wide reveal">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+      </div>
+      <h3 class="card-title">Live Trading Room</h3>
+      <p class="card-desc">Join our daily live sessions where we dissect price action, identify liquidity zones, and execute trades in real-time. Witness institutional logic applied to retail markets — then replicate it yourself.</p>
+      <div class="card-meta">
+        <span class="card-tag">Daily 8:30 AM EST</span>
+        <span class="card-muted">Active Voice Comms</span>
+      </div>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="bento-card reveal">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      </div>
+      <h3 class="card-title">Automated Apps</h3>
+      <p class="card-desc">Custom indicators and automated scripts for TradingView and MT5. Zero guesswork.</p>
+      <a href="#" class="card-link">
+        Explore Library
+        <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="bento-card reveal">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </div>
+      <h3 class="card-title">Copy-Paste Setups</h3>
+      <p class="card-desc">High-probability trade alerts delivered to mobile with exact entry, SL, and TP levels.</p>
+      <div class="card-meta" style="margin-top:20px;">
+        <span class="card-muted">92% Signal Clarity</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Analytics Wide -->
+    <div class="bento-card bento-wide reveal" style="min-height:280px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;height:100%;">
+        <div>
+          <div class="card-icon">
+            <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <h3 class="card-title">Performance Analytics</h3>
+          <p class="card-desc">Track your personal growth, identify your "Green Days" and areas for psychological improvement.</p>
+          <div style="margin-top:8px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--green);">+12% this week</div>
+        </div>
+        <div style="background:var(--surface-high);border-radius:16px;padding:24px;border:1px solid rgba(255,255,255,0.04);">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:16px;">Equity Growth</div>
+          <div class="mini-bars" id="mini-bars">
+            <div class="mini-bar" style="height:48%;" data-h="48"></div>
+            <div class="mini-bar" style="height:35%;" data-h="35"></div>
+            <div class="mini-bar" style="height:62%;" data-h="62"></div>
+            <div class="mini-bar" style="height:44%;" data-h="44"></div>
+            <div class="mini-bar" style="height:75%;" data-h="75"></div>
+            <div class="mini-bar" style="height:58%;" data-h="58"></div>
+            <div class="mini-bar" style="height:90%;" data-h="90"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 5 -->
+    <div class="bento-card reveal">
+      <div class="card-icon">
+        <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+      </div>
+      <h3 class="card-title">Private Discord</h3>
+      <p class="card-desc">Intelligence channel with curated market commentary, weekly forensic reports, and direct access.</p>
+      <div class="card-meta" style="margin-top:20px;">
+        <span class="card-tag">Members Only</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Testimonials -->
+<section id="testimonials">
+  <div class="testimonials-inner">
+    <div class="testimonials-header reveal">
+      <div class="section-label">Social Proof</div>
+      <h2 class="section-title">Traders Who Changed<br>Their Game</h2>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testi-card reveal">
+        <div class="testi-stars">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <p class="testi-quote">"Caitlin's live room is the only reason I'm consistently green. She breaks down liquidity sweeps in a way that finally clicked for me after months of losing. Up 34% since joining."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">MR</div>
+          <div>
+            <div class="testi-name">Marcus R.</div>
+            <div class="testi-handle">@mrcards_trades</div>
+          </div>
+          <div class="testi-return">+34%</div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal">
+        <div class="testi-stars">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <p class="testi-quote">"The automated scripts alone are worth 10x the membership. I set them up on TradingView and they catch entries I would've missed while sleeping. My account is up $12k in 3 months."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">JL</div>
+          <div>
+            <div class="testi-name">Jordan L.</div>
+            <div class="testi-handle">@jordantrades_fx</div>
+          </div>
+          <div class="testi-return">+$12k</div>
+        </div>
+      </div>
+
+      <div class="testi-card reveal">
+        <div class="testi-stars">
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </div>
+        <p class="testi-quote">"I trade from the UK and was skeptical about US-focused education. The non-US automation layer is legit — runs perfectly on my broker with no latency. Finally found a mentor worth paying."</p>
+        <div class="testi-author">
+          <div class="testi-avatar">SK</div>
+          <div>
+            <div class="testi-name">Sophia K.</div>
+            <div class="testi-handle">@sophiafx_london</div>
+          </div>
+          <div class="testi-return">+28%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing">
+  <div class="pricing-glow"></div>
+  <div class="pricing-card reveal" id="pricing-card">
+    <div class="pricing-badge">Premium Access</div>
+    <h2 class="pricing-title">Elevate Your<br>Execution</h2>
+    <div class="pricing-price">
+      <span class="price-num">$249</span>
+      <span class="price-period">/ month</span>
+    </div>
+    <div class="pricing-features">
+      <div class="pricing-feature">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Unlimited Live Trading Access
+      </div>
+      <div class="pricing-feature">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Exclusive Automated Tool Suite
+      </div>
+      <div class="pricing-feature">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Private Discord Intelligence
+      </div>
+      <div class="pricing-feature">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Weekly Market Forensics Reports
+      </div>
+      <div class="pricing-feature">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Copy-Paste Trade Setups
+      </div>
+      <div class="pricing-feature">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        Performance Analytics Dashboard
+      </div>
+    </div>
+    <button class="btn-pricing">Get Started Instantly</button>
+    <p class="pricing-note">Secure Stripe Checkout &nbsp;·&nbsp; No Contract &nbsp;·&nbsp; Cancel Anytime</p>
+  </div>
+</section>
+
+<!-- Global / Non-US Section -->
+<section id="global">
+  <div class="global-inner">
+    <div class="global-left reveal">
+      <div class="global-cards">
+        <div class="global-mini-card">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <h4>GDPR Compliant</h4>
+          <p>Data security protocols meeting EU standards for international traders.</p>
+        </div>
+        <div class="global-mini-card">
+          <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <h4>Safe Execution</h4>
+          <p>Non-custodial automated API bridging. You keep full control.</p>
+        </div>
+        <div class="global-quote-card">
+          <div class="global-quote-avatar">CC</div>
+          <div>
+            <p class="global-quote-text">"Transparency is our currency. We provide the tools, you maintain the control."</p>
+            <p class="global-quote-attr">— Caitlin Cardier</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="global-right reveal">
+      <div class="section-label">Global Expansion</div>
+      <h2 class="section-title">Non-US Automated<br>Service</h2>
+      <p class="section-sub">Optimized for international markets. Our specialized automation layer provides compliant, high-frequency execution for traders outside the United States.</p>
+      <ul class="global-list">
+        <li class="global-list-item">
+          <div class="global-list-icon">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <span class="global-list-text">Direct Broker Bridge Connectivity</span>
+        </li>
+        <li class="global-list-item">
+          <div class="global-list-icon">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          </div>
+          <span class="global-list-text">Encrypted Signal Transmission</span>
+        </li>
+        <li class="global-list-item">
+          <div class="global-list-icon">
+            <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          </div>
+          <span class="global-list-text">Ultra-Low Latency Execution</span>
+        </li>
+      </ul>
+      <a href="#" class="global-cta-link">
+        Inquire about International Compliance
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Join Modal -->
+<div id="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div id="modal-backdrop" onclick="closeModal()"></div>
+  <div id="modal-card">
+    <button id="modal-close" onclick="closeModal()" aria-label="Close">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+
+    <!-- Form view -->
+    <div id="modal-form-view">
+      <div class="modal-eyebrow">Get Access</div>
+      <h2 class="modal-title" id="modal-title">Ready to Trade<br>Smarter?</h2>
+      <p class="modal-sub">Drop your info and we'll reach out with everything you need to get started.</p>
+
+      <!-- Replace YOUR_FORM_ID with your Formspree endpoint ID -->
+      <form class="modal-form" id="join-form"
+            action="https://formspree.io/f/YOUR_FORM_ID"
+            method="POST">
+        <div class="modal-field">
+          <label for="modal-name">Full Name</label>
+          <input type="text" id="modal-name" name="name" placeholder="Your name" required autocomplete="name"/>
+        </div>
+        <div class="modal-field">
+          <label for="modal-email">Email Address</label>
+          <input type="email" id="modal-email" name="email" placeholder="you@example.com" required autocomplete="email"/>
+        </div>
+        <div class="modal-field">
+          <label for="modal-phone">Phone <span style="color:rgba(255,255,255,0.2);font-size:9px;">(optional)</span></label>
+          <input type="tel" id="modal-phone" name="phone" placeholder="+1 (555) 000-0000" autocomplete="tel"/>
+        </div>
+        <button type="submit" class="btn-modal-submit" id="modal-submit-btn">
+          Send Me the Info
+        </button>
+        <p class="modal-privacy">No spam ever · Unsubscribe anytime</p>
+      </form>
+    </div>
+
+    <!-- Success view (shown after submit) -->
+    <div id="modal-success">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <h3>You're in!</h3>
+      <p>Caitlin will be in touch shortly with everything you need to get started.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div>
+        <div class="footer-logo">Caitlin<span>.</span>Cardier</div>
+        <div class="footer-tagline">Trading Education · Automated Tools · Real Alpha</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:16px;">
+        <div class="footer-socials">
+          <a href="https://www.instagram.com/caitlincardier" target="_blank" rel="noopener" class="footer-social-link" aria-label="Instagram">
+            <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+          </a>
+          <a href="https://www.facebook.com/caitlinjcardier" target="_blank" rel="noopener" class="footer-social-link" aria-label="Facebook">
+            <svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+          </a>
+        </div>
+        <ul class="footer-links">
+          <li><a href="#">Risk Disclosure</a></li>
+          <li><a href="#">Terms of Service</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+          <li><a href="#">Affiliate Program</a></li>
+          <li><a href="#">Support</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-legal">© 2024 Caitlin Cardier Trading Education. HIGH-RISK INVESTMENT WARNING: Trading in financial instruments carries a high level of risk and may not be suitable for all investors. Past performance is not indicative of future results.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ── Lenis Smooth Scroll ──
+gsap.registerPlugin(ScrollTrigger);
+
+const lenis = new Lenis({
+  duration: 1.4,
+  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+  smoothWheel: true,
+});
+
+// Single RAF via GSAP ticker only (no duplicate requestAnimationFrame loop)
+lenis.on('scroll', ScrollTrigger.update);
+gsap.ticker.add((time) => lenis.raf(time * 1000));
+gsap.ticker.lagSmoothing(0);
+
+// ── Custom Cursor ──
+const dot = document.getElementById('cursor-dot');
+const ring = document.getElementById('cursor-ring');
+let mouseX = 0, mouseY = 0;
+let ringX = 0, ringY = 0;
+
+document.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+  gsap.to(dot, { x: mouseX, y: mouseY, duration: 0.1, ease: 'power2.out' });
+});
+
+// Ring lerp
+function animateRing() {
+  ringX += (mouseX - ringX) * 0.12;
+  ringY += (mouseY - ringY) * 0.12;
+  gsap.set(ring, { x: ringX, y: ringY });
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+
+// Cursor hover states
+document.querySelectorAll('a, button').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    gsap.to(dot, { scale: 1.5, duration: 0.3 });
+  });
+  el.addEventListener('mouseleave', () => {
+    gsap.to(dot, { scale: 1, duration: 0.3 });
+  });
+});
+
+// ── Particle Canvas ──
+const canvas = document.getElementById('particles');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = canvas.parentElement.offsetHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+for (let i = 0; i < 60; i++) {
+  particles.push({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    vx: (Math.random() - 0.5) * 0.3,
+    vy: (Math.random() - 0.5) * 0.3,
+    size: Math.random() * 1.5 + 0.5,
+    opacity: Math.random() * 0.5 + 0.1
+  });
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.x < 0) p.x = canvas.width;
+    if (p.x > canvas.width) p.x = 0;
+    if (p.y < 0) p.y = canvas.height;
+    if (p.y > canvas.height) p.y = 0;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(92, 253, 128, ${p.opacity})`;
+    ctx.fill();
+  });
+  requestAnimationFrame(drawParticles);
+}
+drawParticles();
+
+// ── Hero GSAP Timeline ──
+const heroTl = gsap.timeline({ defaults: { ease: 'power4.out' } });
+
+heroTl
+  .from('#hero-bg', { scale: 1.08, duration: 2.2, ease: 'expo.out' }, 0)
+  .to('.hero-title .line span', {
+    y: 0,
+    duration: 1.1,
+    stagger: 0.12,
+    ease: 'power4.out'
+  }, 0.3)
+  .to('.hero-sub', { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 0.9)
+  .to('.hero-actions', { opacity: 1, y: 0, duration: 0.9, ease: 'power3.out' }, 1.1)
+  .to('.hero-right', { opacity: 1, duration: 1, ease: 'power3.out' }, 1.0)
+  .to('#scroll-indicator', { opacity: 1, duration: 0.6 }, 1.8);
+
+// Hero widget float
+gsap.to('#roi-widget', {
+  y: 12,
+  duration: 3.5,
+  repeat: -1,
+  yoyo: true,
+  ease: 'sine.inOut',
+  delay: 2
+});
+gsap.to('#trade-widget', {
+  y: -8,
+  duration: 4.5,
+  repeat: -1,
+  yoyo: true,
+  ease: 'sine.inOut',
+  delay: 1.5
+});
+
+// Chart line draw
+gsap.to('.chart-line', {
+  strokeDashoffset: 0,
+  duration: 2,
+  ease: 'power2.inOut',
+  delay: 1.8
+});
+gsap.to('.chart-fill', {
+  opacity: 1,
+  duration: 1,
+  ease: 'power2.inOut',
+  delay: 2.5
+});
+
+// Hero parallax
+gsap.to('#hero-bg', {
+  yPercent: 25,
+  ease: 'none',
+  scrollTrigger: {
+    trigger: '#hero',
+    start: 'top top',
+    end: 'bottom top',
+    scrub: true
+  }
+});
+
+// ── Bento Card Mouse Glow ──
+document.querySelectorAll('.bento-card').forEach(card => {
+  card.addEventListener('mousemove', e => {
+    const rect = card.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    card.style.setProperty('--mx', x + '%');
+    card.style.setProperty('--my', y + '%');
+
+    const rotX = ((e.clientY - rect.top) / rect.height - 0.5) * -8;
+    const rotY = ((e.clientX - rect.left) / rect.width - 0.5) * 8;
+    gsap.to(card, { rotateX: rotX, rotateY: rotY, transformPerspective: 1000, duration: 0.4, ease: 'power2.out', overwrite: 'auto' });
+  });
+  card.addEventListener('mouseleave', () => {
+    gsap.to(card, { rotateX: 0, rotateY: 0, duration: 0.8, ease: 'elastic.out(1, 0.4)', overwrite: 'auto' });
+  });
+});
+
+// ── Scroll Reveal ──
+gsap.utils.toArray('.reveal').forEach(el => {
+  gsap.from(el, {
+    scrollTrigger: { trigger: el, start: 'top 85%', once: true },
+    y: 40,
+    opacity: 0,
+    duration: 0.9,
+    ease: 'power3.out'
+  });
+});
+
+// ── Animated Bar Chart ──
+ScrollTrigger.create({
+  trigger: '#mini-bars',
+  start: 'top 80%',
+  once: true,
+  onEnter: () => {
+    document.querySelectorAll('.mini-bar').forEach((bar, i) => {
+      gsap.fromTo(bar,
+        { scaleY: 0 },
+        { scaleY: 1, duration: 0.7, delay: i * 0.08, ease: 'back.out(1.5)', transformOrigin: 'bottom' }
+      );
+    });
+  }
+});
+
+// ── Counter Animation ──
+function animateCounter(el) {
+  const target = parseInt(el.dataset.target);
+  const suffix = el.dataset.suffix || '';
+  const prefix = el.dataset.prefix || '';
+  const dec = el.dataset.dec || '';
+  let start = 0;
+  const duration = 2000;
+  const startTime = performance.now();
+
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const current = Math.floor(eased * target);
+    el.textContent = prefix + current.toLocaleString() + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+// Special: +24.8%
+function animateDecimalCounter(el) {
+  const target = 24.8;
+  const duration = 2000;
+  const startTime = performance.now();
+  function update(currentTime) {
+    const elapsed = currentTime - startTime;
+    const progress = Math.min(elapsed / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    el.textContent = '+' + (eased * target).toFixed(1) + '%';
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+
+ScrollTrigger.create({
+  trigger: '#stats',
+  start: 'top 80%',
+  once: true,
+  onEnter: () => {
+    document.querySelectorAll('.stat-number').forEach(el => {
+      if (el.dataset.prefix === '+') {
+        animateDecimalCounter(el);
+      } else {
+        animateCounter(el);
+      }
+    });
+  }
+});
+
+// ── Bento stagger on scroll ──
+gsap.from('.bento-card', {
+  scrollTrigger: { trigger: '#services', start: 'top 70%', once: true },
+  y: 60,
+  opacity: 0,
+  duration: 0.9,
+  stagger: 0.1,
+  ease: 'power3.out'
+});
+
+// Testimonial cards stagger
+gsap.from('.testi-card', {
+  scrollTrigger: { trigger: '#testimonials', start: 'top 75%', once: true },
+  y: 50,
+  opacity: 0,
+  duration: 0.8,
+  stagger: 0.12,
+  ease: 'power3.out'
+});
+
+// Pricing card
+gsap.from('#pricing-card', {
+  scrollTrigger: { trigger: '#pricing', start: 'top 75%', once: true },
+  y: 50,
+  scale: 0.96,
+  opacity: 0,
+  duration: 1.2,
+  ease: 'power3.out'
+});
+
+// ── Pricing card cursor spotlight ──
+const pCard = document.getElementById('pricing-card');
+if (pCard) {
+  pCard.addEventListener('mousemove', e => {
+    const rect = pCard.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    pCard.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(92,253,128,0.06) 0%, var(--surface-mid) 60%)`;
+  });
+  pCard.addEventListener('mouseleave', () => {
+    pCard.style.background = '';
+  });
+}
+
+// ── Join Modal ──
+function openModal() {
+  const overlay = document.getElementById('modal-overlay');
+  const backdrop = document.getElementById('modal-backdrop');
+  const card = document.getElementById('modal-card');
+
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+
+  gsap.timeline()
+    .to(overlay, { opacity: 1, duration: 0.01 })
+    .to(backdrop, { opacity: 1, duration: 0.3, ease: 'power2.out' }, 0)
+    .to(card, {
+      opacity: 1,
+      scale: 1,
+      y: 0,
+      duration: 0.5,
+      ease: 'back.out(1.4)'
+    }, 0.05);
+}
+
+function closeModal() {
+  const overlay = document.getElementById('modal-overlay');
+  const backdrop = document.getElementById('modal-backdrop');
+  const card = document.getElementById('modal-card');
+
+  gsap.timeline({ onComplete: () => {
+    overlay.classList.remove('active');
+    overlay.style.opacity = 0;
+    document.body.style.overflow = '';
+  }})
+    .to(card, { opacity: 0, scale: 0.94, y: 10, duration: 0.3, ease: 'power3.in' })
+    .to(backdrop, { opacity: 0, duration: 0.25, ease: 'power2.in' }, 0.05);
+}
+
+// Close on Escape
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// Form submit handler
+document.getElementById('join-form').addEventListener('submit', async function(e) {
+  const btn = document.getElementById('modal-submit-btn');
+  const action = this.action;
+
+  // If still using placeholder, just show success (dev mode)
+  if (action.includes('YOUR_FORM_ID')) {
+    e.preventDefault();
+    showModalSuccess();
+    return;
+  }
+
+  // Real Formspree submission
+  e.preventDefault();
+  btn.textContent = 'Sending...';
+  btn.style.opacity = '0.7';
+
+  try {
+    const data = new FormData(this);
+    const res = await fetch(action, {
+      method: 'POST',
+      body: data,
+      headers: { 'Accept': 'application/json' }
+    });
+    if (res.ok) {
+      showModalSuccess();
+    } else {
+      btn.textContent = 'Try Again';
+      btn.style.opacity = '1';
+    }
+  } catch {
+    btn.textContent = 'Try Again';
+    btn.style.opacity = '1';
+  }
+});
+
+function showModalSuccess() {
+  const formView = document.getElementById('modal-form-view');
+  const successView = document.getElementById('modal-success');
+  gsap.to(formView, {
+    opacity: 0, y: -10, duration: 0.25, ease: 'power2.in',
+    onComplete: () => {
+      formView.style.display = 'none';
+      successView.style.display = 'block';
+      gsap.fromTo(successView,
+        { opacity: 0, y: 15 },
+        { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' }
+      );
+    }
+  });
+}
+
+// ── Nav scroll state ──
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('nav');
+  if (window.scrollY > 100) {
+    nav.style.background = 'rgba(14,14,14,0.9)';
+  } else {
+    nav.style.background = 'rgba(14,14,14,0.5)';
+  }
+}, { passive: true });
+</script>
+</body>
+</html>

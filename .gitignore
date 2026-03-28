@@ -1,0 +1,7 @@
+.DS_Store
+screenshots/
+node_modules/
+package*.json
+screen.png
+DESIGN.md
+code.html
