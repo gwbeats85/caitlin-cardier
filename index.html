@@ -2037,14 +2037,21 @@ gsap.from('.testi-card', {
 });
 
 // Pricing card
-gsap.from('#pricing-card', {
-  scrollTrigger: { trigger: '#pricing', start: 'top 75%', once: true },
-  y: 50,
-  scale: 0.96,
-  opacity: 0,
-  duration: 1.2,
-  ease: 'power3.out'
-});
+gsap.fromTo('#pricing-card',
+  { y: 50, scale: 0.96, opacity: 0 },
+  {
+    scrollTrigger: { trigger: '#pricing', start: 'top 85%', once: true },
+    y: 0, scale: 1, opacity: 1,
+    duration: 1.2, ease: 'power3.out'
+  }
+);
+// Fallback — ensure pricing card is always visible after 2s
+setTimeout(() => {
+  const el = document.getElementById('pricing-card');
+  if (el && parseFloat(getComputedStyle(el).opacity) < 0.5) {
+    gsap.set(el, { opacity: 1, y: 0, scale: 1 });
+  }
+}, 2000);
 
 // ── Pricing card cursor spotlight ──
 const pCard = document.getElementById('pricing-card');
